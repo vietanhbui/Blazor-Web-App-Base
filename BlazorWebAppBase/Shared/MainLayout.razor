@@ -1,19 +1,52 @@
-﻿@inherits LayoutComponentBase
+﻿@using BlazorWebAppBase.Authentication;
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject NavigationManager navigationManager
 
-<PageTitle>BlazorWebAppBase</PageTitle>
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <div class="sidebar">
+                <NavMenu />
+            </div>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+            <main>
+                <div class="top-row px-4">
+                    <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+                    <a @onclick="Logout">logout</a>
+                </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
         </div>
+    </Authorized>
+</AuthorizeView>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+@code {
+    private async void Logout()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        await customAuthStateProvider.UpdateAuthenticationState(null);
+        navigationManager.NavigateTo("/login", true);
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var state = await authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        if (user.Identity != null && !user.Identity.IsAuthenticated)
+        {
+            navigationManager.NavigateTo("/login");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadDataAsync();
+        }
+    }
+}

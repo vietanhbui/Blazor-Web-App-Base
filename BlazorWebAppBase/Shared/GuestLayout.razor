@@ -1,0 +1,18 @@
+﻿@using BlazorWebAppBase.Authentication;
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject NavigationManager navigationManager
+@attribute [AllowAnonymous]
+
+@Body
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+            await customAuthStateProvider.UpdateAuthenticationState(null);
+        }
+    }
+}
